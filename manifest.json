@@ -3,7 +3,7 @@
   "name": "todont",
   "description": "Don't do it",
   "version": "0.0.1",
-  "chrome_url_override": {
+  "chrome_url_overrides": {
     "newtab": "index.html"
   }
 }
