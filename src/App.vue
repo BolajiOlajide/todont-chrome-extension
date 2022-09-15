@@ -32,9 +32,9 @@ const dragging = ref(false);
 const data = reactive(defaultData);
 
 if (chrome?.storage) {
-  chrome.storage.sync.get([STORAGE_KEY], (data) => {
-    if (data[STORAGE_KEY]) {
-      data.columns = (data[STORAGE_KEY] as Data).columns;
+  chrome.storage.sync.get([STORAGE_KEY], (chromeData) => {
+    if (chromeData[STORAGE_KEY]) {
+      data.columns = (chromeData[STORAGE_KEY] as Data).columns;
     }
   });
 } else {
