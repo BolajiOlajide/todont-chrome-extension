@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { reactive, watch } from "vue";
+import { reactive, watch, ref } from "vue";
 import uniqid from "uniqid";
 import IconAccountBox from "~icons/mdi/account-box";
 import IconCheckboxBlankOutline from "~icons/mdi/checkbox-blank-outline";
 import IconCheckboxMarked from "~icons/mdi/checkbox-marked";
 import IconTrashCan from "~icons/mdi/trash-can";
-import draggable from 'vuedraggable';
+import draggable from "vuedraggable";
 
 const STORAGE_KEY = "todont-app-data";
 
@@ -26,6 +26,7 @@ const defaultData: Data = {
   ],
 };
 
+const dragging = ref(false);
 const storedDataStr = localStorage.getItem(STORAGE_KEY);
 const storedData = (
   storedDataStr ? JSON.parse(storedDataStr) : defaultData
@@ -79,7 +80,18 @@ interface List {
       class="rounded-md shadow-md bg-slate-100 py-4 px-4 w-1/4 space-y-4"
     >
       <p class="mb-3">{{ column.name }}</p>
-      <draggable v-model="column.list" group="items" item-key="id" class="space-y-4">
+      <draggable
+        v-model="column.list"
+        group="items"
+        item-key="id"
+        class="space-y-4"
+        ghost-class="ghost"
+        @start="dragging = true"
+        @end="dragging = false"
+        :class="{
+          'min-h-[40px] bg-slate-200 rounded-md': dragging
+        }"
+      >
         <template #item="{ element: item }">
           <div
             class="rounded-md bg-slate-50 py-2 px-3 shadow-md flex flex-row space-x-2 items-center"
@@ -121,4 +133,8 @@ interface List {
   </ul>
 </template>
 
-<style scoped></style>
+<style scoped>
+.ghost {
+  @apply bg-slate-400 opacity-30;
+}
+</style>
