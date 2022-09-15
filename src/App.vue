@@ -32,6 +32,7 @@ const dragging = ref(false);
 const data = reactive(defaultData);
 
 if (chrome?.storage) {
+  // https://stackoverflow.com/questions/24279495/window-localstorage-vs-chrome-storage-local
   chrome.storage.sync.get([STORAGE_KEY], (chromeData) => {
     if (chromeData[STORAGE_KEY]) {
       data.columns = (chromeData[STORAGE_KEY] as Data).columns;
@@ -48,7 +49,7 @@ watch(data, (newData) => {
   if (chrome?.storage) {
     const raw = toRaw(newData);
     chrome.storage.sync.set({ STORAGE_KEY: raw }, function() {
-      console.log("Data is saved", raw);
+      console.log("Data is saved", raw.columns);
     });
   } else {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
