@@ -4,6 +4,8 @@ import uniqid from "uniqid";
 import IconAccountBox from "~icons/mdi/account-box";
 import IconCheckboxBlankOutline from "~icons/mdi/checkbox-blank-outline";
 import IconCheckboxMarked from "~icons/mdi/checkbox-marked";
+import IconTrashCan from "~icons/mdi/trash-can";
+import draggable from 'vuedraggable';
 
 const STORAGE_KEY = "todont-app-data";
 
@@ -49,6 +51,10 @@ function addItem(e: Event, column: Column) {
   form.reset();
 }
 
+function deleteItem(e: Event, column: Column, itemId: string) {
+  column.list = column.list.filter((item) => item.id !== itemId);
+}
+
 interface Data {
   columns: Column[];
 }
@@ -72,27 +78,34 @@ interface List {
       :key="column.name"
       class="rounded-md shadow-md bg-slate-100 py-4 px-4 w-1/4 space-y-4"
     >
-      <p>{{ column.name }}</p>
-      <div
-        class="rounded-md bg-slate-50 py-2 px-3 shadow-md flex flex-row space-x-2 items-center"
-        v-for="item in column.list"
-        :key="item.id"
-      >
-        <button
-          class="mt-[2px]"
-          @click="item.state = item.state === 'done' ? 'new' : 'done'"
-        >
-          <IconCheckboxBlankOutline v-if="item.state !== 'done'" />
-          <IconCheckboxMarked v-else />
-        </button>
-        <span
-          class="inline-block break-words min-w-0"
-          :class="{
-            'line-through': item.state === 'done',
-          }"
-          >{{ item.description }}</span
-        >
-      </div>
+      <p class="mb-3">{{ column.name }}</p>
+      <draggable v-model="column.list" group="items" item-key="id" class="space-y-4">
+        <template #item="{ element: item }">
+          <div
+            class="rounded-md bg-slate-50 py-2 px-3 shadow-md flex flex-row space-x-2 items-center"
+          >
+            <button
+              class="mt-[2px]"
+              @click="item.state = item.state === 'done' ? 'new' : 'done'"
+            >
+              <IconCheckboxBlankOutline v-if="item.state !== 'done'" />
+              <IconCheckboxMarked v-else />
+            </button>
+
+            <span
+              class="inline-block break-words min-w-0 grow"
+              :class="{
+                'line-through': item.state === 'done',
+              }"
+              >{{ item.description }}</span
+            >
+
+            <button @click="deleteItem($event, column, item.id)">
+              <IconTrashCan class="text-red-700" />
+            </button>
+          </div>
+        </template>
+      </draggable>
       <form
         @submit.prevent="addItem($event, column)"
         class="flex flex-col items-end"
