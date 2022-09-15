@@ -5,6 +5,7 @@ import IconAccountBox from "~icons/mdi/account-box";
 import IconCheckboxBlankOutline from "~icons/mdi/checkbox-blank-outline";
 import IconCheckboxMarked from "~icons/mdi/checkbox-marked";
 import IconTrashCan from "~icons/mdi/trash-can";
+import IconEdit from "~icons/mdi/edit";
 import draggable from "vuedraggable";
 
 const STORAGE_KEY = "todont-app-data";
@@ -94,8 +95,19 @@ interface List {
       >
         <template #item="{ element: item }">
           <div
-            class="rounded-md bg-slate-50 py-2 px-3 shadow-md flex flex-row space-x-2 items-center"
+            class="group rounded-md bg-slate-50 py-2 px-3 shadow-md flex flex-row space-x-2 items-center relative cursor-pointer"
           >
+
+            <div class="hidden absolute bottom-0 right-0 p-3 bg-slate-50 opacity-90 max-h-full space-x-3 flex-row group-hover:flex">
+              <button>
+                <IconEdit />
+              </button>
+
+              <button @click="deleteItem($event, column, item.id)">
+                <IconTrashCan class="text-red-500" />
+              </button>
+            </div>
+
             <button
               class="mt-[2px]"
               @click="item.state = item.state === 'done' ? 'new' : 'done'"
@@ -105,16 +117,12 @@ interface List {
             </button>
 
             <span
-              class="inline-block break-words min-w-0 grow"
+              class="inline-block break-words min-w-0"
               :class="{
                 'line-through': item.state === 'done',
               }"
               >{{ item.description }}</span
             >
-
-            <button @click="deleteItem($event, column, item.id)">
-              <IconTrashCan class="text-red-700" />
-            </button>
           </div>
         </template>
       </draggable>
