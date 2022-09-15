@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { ref, Ref } from "vue";
+import { reactive, watch } from "vue";
 import uniqid from "uniqid";
+import IconAccountBox from "~icons/mdi/account-box";
+import IconCheckboxBlankOutline from "~icons/mdi/checkbox-blank-outline";
+import IconCheckboxMarked from "~icons/mdi/checkbox-marked";
 
-const data: Ref<{ columns: Column[] }> = ref({
+const STORAGE_KEY = "todont-app-data";
+
+const defaultData: Data = {
   columns: [
     {
       name: "now",
@@ -17,6 +22,17 @@ const data: Ref<{ columns: Column[] }> = ref({
       list: [],
     },
   ],
+};
+
+const storedDataStr = localStorage.getItem(STORAGE_KEY);
+const storedData = (
+  storedDataStr ? JSON.parse(storedDataStr) : defaultData
+) as Data;
+
+const data = reactive(storedData);
+
+watch(data, (newData) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
 });
 
 function addItem(e: Event, column: Column) {
@@ -33,13 +49,19 @@ function addItem(e: Event, column: Column) {
   form.reset();
 }
 
+interface Data {
+  columns: Column[];
+}
+
 interface Column {
   name: string;
-  list: {
-    id: string;
-    description: string;
-    state: 'now' | 'done';
-  }[];
+  list: List[];
+}
+
+interface List {
+  id: string;
+  description: string;
+  state: "new" | "done";
 }
 </script>
 
@@ -52,11 +74,24 @@ interface Column {
     >
       <p>{{ column.name }}</p>
       <div
-        class="rounded-md bg-slate-50 py-2 px-3 shadow-md"
+        class="rounded-md bg-slate-50 py-2 px-3 shadow-md flex flex-row space-x-2 items-center"
         v-for="item in column.list"
         :key="item.id"
       >
-        {{ item.description }}
+        <button
+          class="mt-[2px]"
+          @click="item.state = item.state === 'done' ? 'new' : 'done'"
+        >
+          <IconCheckboxBlankOutline v-if="item.state !== 'done'" />
+          <IconCheckboxMarked v-else />
+        </button>
+        <span
+          class="inline-block break-words min-w-0"
+          :class="{
+            'line-through': item.state === 'done',
+          }"
+          >{{ item.description }}</span
+        >
       </div>
       <form
         @submit.prevent="addItem($event, column)"
