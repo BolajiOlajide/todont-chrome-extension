@@ -57,6 +57,21 @@ function deleteItem(e: Event, column: Column, itemId: string) {
   column.list = column.list.filter((item) => item.id !== itemId);
 }
 
+function editItem(e: Event, column: Column, item: List) {
+  const form = e.target as HTMLFormElement;
+  const formData = new FormData(form);
+  const updatedDescription = formData.get("description");
+
+  column.list = column.list.map((item) => {
+    if (item.id === item.id) {
+      item.description = updatedDescription as string;
+    }
+    return item;
+  });
+
+  item.editing = false
+}
+
 interface Data {
   columns: Column[];
 }
@@ -70,6 +85,7 @@ interface List {
   id: string;
   description: string;
   state: "new" | "done";
+  editing?: boolean;
 }
 </script>
 
@@ -90,39 +106,61 @@ interface List {
         @start="dragging = true"
         @end="dragging = false"
         :class="{
-          'min-h-[40px] bg-slate-200 rounded-md': dragging
+          'min-h-[40px] bg-slate-200 rounded-md': dragging,
         }"
       >
         <template #item="{ element: item }">
           <div
             class="group rounded-md bg-slate-50 py-2 px-3 shadow-md flex flex-row space-x-2 items-center relative cursor-pointer"
           >
+            <template v-if="item.editing">
+              <form
+                @submit.prevent="editItem($event, column, item)"
+                class="w-full flex flex-col items-end"
+              >
+                <input
+                  type="text"
+                  :defaultValue="item.description"
+                  name="description"
+                  class="w-full px-3 py-2 rounded-md mb-2 bg-white outline-black border-gray-600 border"
+                />
 
-            <div class="hidden absolute bottom-0 right-0 p-3 bg-slate-50 opacity-90 max-h-full space-x-3 flex-row group-hover:flex">
-              <button>
-                <IconEdit />
+                <section class="flex">
+                  <button class="mx-2">Update</button>
+                  <button @click="item.editing = false">Cancel</button>
+                </section>
+              </form>
+            </template>
+
+            <template v-else>
+              <div
+                class="hidden absolute bottom-0 right-0 p-3 bg-slate-50 opacity-90 max-h-full space-x-3 flex-row group-hover:flex"
+              >
+                <button @click="item.editing = true">
+                  <IconEdit />
+                </button>
+
+                <button @click="deleteItem($event, column, item.id)">
+                  <IconTrashCan class="text-red-500" />
+                </button>
+              </div>
+
+              <button
+                class="mt-[2px]"
+                @click="item.state = item.state === 'done' ? 'new' : 'done'"
+              >
+                <IconCheckboxBlankOutline v-if="item.state !== 'done'" />
+                <IconCheckboxMarked v-else />
               </button>
 
-              <button @click="deleteItem($event, column, item.id)">
-                <IconTrashCan class="text-red-500" />
-              </button>
-            </div>
-
-            <button
-              class="mt-[2px]"
-              @click="item.state = item.state === 'done' ? 'new' : 'done'"
-            >
-              <IconCheckboxBlankOutline v-if="item.state !== 'done'" />
-              <IconCheckboxMarked v-else />
-            </button>
-
-            <span
-              class="inline-block break-words min-w-0"
-              :class="{
-                'line-through': item.state === 'done',
-              }"
-              >{{ item.description }}</span
-            >
+              <span
+                class="inline-block break-words min-w-0"
+                :class="{
+                  'line-through': item.state === 'done',
+                }"
+                >{{ item.description }}</span
+              >
+            </template>
           </div>
         </template>
       </draggable>
