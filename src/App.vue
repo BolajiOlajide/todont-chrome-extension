@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, watch, ref } from "vue";
+import { reactive, watch, ref, toRaw } from "vue";
 import uniqid from "uniqid";
 import IconAccountBox from "~icons/mdi/account-box";
 import IconCheckboxBlankOutline from "~icons/mdi/checkbox-blank-outline";
@@ -28,15 +28,31 @@ const defaultData: Data = {
 };
 
 const dragging = ref(false);
-const storedDataStr = localStorage.getItem(STORAGE_KEY);
-const storedData = (
-  storedDataStr ? JSON.parse(storedDataStr) : defaultData
-) as Data;
 
-const data = reactive(storedData);
+const data = reactive(defaultData);
+
+if (chrome?.storage) {
+  chrome.storage.sync.get([STORAGE_KEY], (data) => {
+    if (data[STORAGE_KEY]) {
+      data.columns = (data[STORAGE_KEY] as Data).columns;
+    }
+  });
+} else {
+  const storedDataStr = localStorage.getItem(STORAGE_KEY);
+  if (storedDataStr) {
+    data.columns = (JSON.parse(storedDataStr) as Data).columns;
+  }
+}
 
 watch(data, (newData) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+  if (chrome?.storage) {
+    const raw = toRaw(newData);
+    chrome.storage.sync.set({ STORAGE_KEY: raw }, function() {
+      console.log("Data is saved", raw);
+    });
+  } else {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+  }
 });
 
 function addItem(e: Event, column: Column) {
@@ -127,7 +143,7 @@ interface List {
 
                 <section class="flex">
                   <button class="mx-2">Update</button>
-                  <button @click="item.editing = false">Cancel</button>
+                  <button type="button" @click="item.editing = false" class="text-xs">Cancel</button>
                 </section>
               </form>
             </template>
